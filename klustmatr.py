@@ -13,6 +13,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 import mgua
 
+from sklearn.model_selection import train_test_split
+
 def in_markers (markers, lenth, cl_mark):
     for i in range (lenth):
         if (markers[i] == cl_mark):
@@ -74,18 +76,10 @@ def cluster_metric_DB_AMN(dim, X, Y, y_alg, y_len):
         print(round(err[i], 3), end = ', ')
     print(round(err[clust_n - 1], 3), end = '')
     print(']\n')
-        
-    # линейная регрессия + МГУА
-    
-    inp = input("   MGUA (y/n):  ")
-    if inp.startswith('y'):
-        for i in range(clust_n):
-            print("cluster ", markers[i], " MGUA: ",
-                  MGUA_cluster(X,Y, markers[i],y_alg,y_len))
-        print("\n")
-    elif not inp.startswith('n'):
-        print("continue with 'n'")
-     
+          
+
+
+
 """
 Возвращает матрицу признаков и вектор свойств для точек кластера
 """
@@ -97,29 +91,6 @@ def get_cluster_points(X, Y, klust_mark, y_alg, y_len):
             ret_X += [ X[i] ]
             ret_Y += [ Y[i] ]
     return ret_X, ret_Y
-
-def MGUA_cluster(X,Y, clust_mark, y_alg, y_len):
-    X_cl, Y_cl = get_cluster_points(X,Y, clust_mark, y_alg, y_len) 
-    if(len(Y_cl) > 5):
-        Mgua = mgua.MGUA(4, 0.997, 5, LinearRegression(normalize=True))
-        
-        train_size = int (0.7 * len(Y_cl))
-        X_train = pd.DataFrame(X_cl[:train_size])
-        X_test  = pd.DataFrame(X_cl[train_size:])
-        Y_train = pd.DataFrame(Y_cl[:train_size])
-        Y_test  = pd.DataFrame(Y_cl[train_size:])
-        
-        Mgua.fit(X_train, Y_train)
-        res  = Mgua.predict(X_test)
-        
-        best_res = -1
-        for i in range(len(res)):
-            if r2_score(Y_test, res[i]) > best_res:
-                best_res = r2_score(Y_test, res[i])
-        
-        return best_res
-    else:
-        return "failure (too few points)"
 
 def plot_clustProfile(X, y_alg):
     X_len   = len(X)
@@ -161,99 +132,87 @@ def plot_PC (dim, PrincipalComp):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.scatter(PrincipalComp[:,0], PrincipalComp[:,1], PrincipalComp[:, 2])
+        plt.show()
     else:
         print("exepted dim = 1,2,3")
+        
+        
 
 """ 
-Изображает проекции на dim главных осей после применения k-means для k =  n_clusters 
+Изображает проекции на dim главных осей после применения алгоритмы кластерного анализа
 """        
-def plot_kmeans (dim, PrincipalComp, n_clusters):
+def plot_clusters(dim, label, train_pnt, test_pnt, y_alg_train, y_alg_test, centers = np.array(0)):
+    if (dim == 1):
+        fig, ax = plt.subplots()
+        ax.set_title(label)
+        ax.scatter(train_pnt[:,0], train_pnt[:,0]*0, c = y_alg_train, s = 25)
+        ax.scatter(test_pnt[:,0], test_pnt[:,0]*0, c = y_alg_test, s = 100)
+        if (centers.any()):
+            ax.scatter(centers[:, 0], centers[:, 0]*0, c = 'black', s = 200, alpha = 0.5);
+        plt.show()
+        return y_alg_train
+    elif (dim == 2):
+        fig, ax = plt.subplots()
+        ax.set_title(label)
+        ax.scatter(train_pnt[:,0], train_pnt[:,1], c = y_alg_train, s = 25)
+        ax.scatter(test_pnt[:,0], test_pnt[:,1], c = y_alg_test, s = 100)
+        if (centers.any()):
+            ax.scatter(centers[:, 0], centers[:, 0]*0, c = 'black', s = 200, alpha = 0.5);
+        plt.show()
+        return y_alg_train
+    elif (dim == 3):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_title(label)
+        ax.scatter(train_pnt[:,0], train_pnt[:,1], train_pnt[:,2], c = y_alg_train, s = 25)
+        ax.scatter(test_pnt[:,0], test_pnt[:,1], test_pnt[:,2], c = y_alg_test, s = 100)
+        if (centers.any()):
+            ax.scatter(centers[:, 0], centers[:, 0]*0, c = 'black', s = 200, alpha = 0.5);
+        plt.show()
+        return y_alg_train
+    else:
+         print("expected dim = 1,2,3")
+         return None
+    
+    
+    
+def plot_kmeans (dim, train_pnt, test_pnt, n_clusters):
     kmeans = KMeans(n_clusters = n_clusters)
-    kmeans.fit(PrincipalComp)
-    y_kmeans = kmeans.predict(PrincipalComp)
-    centers = kmeans.cluster_centers_
+    kmeans.fit(train_pnt)
+    y_alg_train = kmeans.predict(train_pnt)
+    y_alg_test  = kmeans.predict(test_pnt)
+    #centers = kmeans.cluster_centers_
     
-    if (dim == 1):
-        fig, ax = plt.subplots()
-        ax.set_title("KMeans-algorithm")
-        ax.scatter(PrincipalComp[:,0], PrincipalComp[:,0]*0, c = y_kmeans)
-        ax.scatter(centers[:, 0], centers[:, 0]*0, c = 'black', s = 200, alpha = 0.5);
-        plt.show()
-        return y_kmeans
-    elif (dim == 2):
-        fig, ax = plt.subplots()
-        ax.set_title("KMeans-algorithm")
-        ax.scatter(PrincipalComp[:,0], PrincipalComp[:,1], c = y_kmeans)
-        ax.scatter(centers[:, 0], centers[:, 1], c = 'black', s = 200, alpha = 0.5);
-        plt.show()
-        return y_kmeans
-    elif (dim == 3):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.set_title("KMeans-algorithm")
-        ax.scatter(PrincipalComp[:,0], PrincipalComp[:,1], PrincipalComp[:, 2], c = y_kmeans)
-        ax.scatter(centers[:, 0], centers[:, 1], centers[:, 2], c = 'black', s = 200, alpha = 0.5)
-        plt.show()
-        return y_kmeans
-    else:
-         print("expected dim = 1,2,3")
-         return None
+    return plot_clusters(dim, "KMeans-algorithm", train_pnt,\
+                         test_pnt, y_alg_train, y_alg_test)#, centers)
+    
+    
         
-def plot_EM (dim, PrincipalComp, n_clusters):
-    gmm = GaussianMixture(n_components = n_clusters, covariance_type='full')
-    gmm.fit(PrincipalComp)
-    y_gmm = gmm.predict(PrincipalComp)
+def plot_EM (dim, train_pnt, test_pnt, n_clusters):
+    clust_alg = GaussianMixture(n_components = n_clusters, covariance_type='full')
+    clust_alg.fit(train_pnt)
+    y_alg_train = clust_alg.predict(train_pnt)
+    y_alg_test  = clust_alg.predict(test_pnt)
     
-    if (dim == 1):
-        fig, ax = plt.subplots()
-        ax.set_title("EM-algorithm")
-        ax.scatter(PrincipalComp[:,0], PrincipalComp[:,0]*0, c = y_gmm)
-        plt.show()
-        return y_gmm
-    elif (dim == 2):
-        fig, ax = plt.subplots()
-        ax.set_title("EM-algorithm")
-        ax.scatter(PrincipalComp[:,0], PrincipalComp[:,1], c = y_gmm)
-        plt.show()
-        return y_gmm
-    elif (dim == 3):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.set_title("EM-algorithm")
-        ax.scatter(PrincipalComp[:,0], PrincipalComp[:,1], PrincipalComp[:, 2], c = y_gmm)
-        plt.show()
-        return y_gmm
-    else:
-         print("expected dim = 1,2,3")
-         return None
+    return plot_clusters(dim, "EM-algorithm", train_pnt,\
+                         test_pnt, y_alg_train, y_alg_test)
+    
+
         
-def plot_DBSCAN (dim, PrincipalComp, eps, min_samples):
-    dbscan = DBSCAN(eps = eps, min_samples = min_samples)
-    dbscan.fit(PrincipalComp)
-    y_dbscan = dbscan.labels_
+def plot_DBSCAN (dim, train_pnt, test_pnt, eps, min_samples, alg_id, p):
+    if(alg_id == 1):
+        dbscan = DBSCAN(eps = eps, min_samples = min_samples)
+    if(alg_id == 2):
+        dbscan = DBSCAN(eps = eps, min_samples = min_samples, metric = 'minkowski', p = p)
+    if(alg_id == 3):
+        dbscan = DBSCAN(eps = eps, min_samples = min_samples, metric = 'chebyshev')
     
-    if (dim == 1):
-        fig, ax = plt.subplots()
-        ax.set_title("DBSCAN-algorithm")
-        ax.scatter(PrincipalComp[:,0], PrincipalComp[:,0]*0, c = y_dbscan)
-        plt.show()
-        return y_dbscan
-    elif (dim == 2):
-        fig, ax = plt.subplots()
-        ax.set_title("DBSCAN-algorithm")
-        ax.scatter(PrincipalComp[:,0], PrincipalComp[:,1], c = y_dbscan)
-        plt.show()
-        return y_dbscan
-    elif (dim == 3):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.set_title("DBSCAN-algorithm")
-        ax.scatter(PrincipalComp[:,0], PrincipalComp[:,1], PrincipalComp[:, 2], c = y_dbscan)
-        plt.show()
-        return y_dbscan
-    else:
-         print("expected dim = 1,2,3")
-         return None
+    clusters = dbscan.fit_predict( np.vstack( (train_pnt, test_pnt) ) )
+    y_alg_train = clusters[:len(train_pnt)]
+    y_alg_test  = clusters[len(train_pnt):]
+    
+    return plot_clusters(dim, "DBSCAN-algorithm", train_pnt,\
+                         test_pnt, y_alg_train, y_alg_test)
         
 
         

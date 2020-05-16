@@ -62,11 +62,11 @@ def read_file():
 def read_PCA():            
 #выбор числа главных компонент
     while(True):
-        print("select metric:\n",
+        print("select dimension of feature space:\n",
               "1 - PCA (1 principal component)\n",
               "2 - PCA (2 principal components)\n",
               "3 - PCA (3 principal components)\n",
-              "4 - Euclidean metric")
+              "4 - all features")
         in_metr = input()
         if(in_metr.startswith("1")):
             dim = 1
@@ -86,7 +86,7 @@ def read_PCA():
             break
     return dim
 
-def read_clustAlg(dim, X):
+def read_clustAlg():
 #выбор алгоритма кластеризации
     print("select cluster analysis algorithm:\n",
           "1 - k-means\n",
@@ -205,11 +205,29 @@ def get_propeties_DB_GLASS (name, y_len):
                 not_stop = False
                 continue
             
-        Y[j] = int( line.split()[3] )
-        j += 1
+            #print(line.split())
+            Y[j] = int( line.split()[3] )
+            j += 1
     return Y
         
-        
-        
+def get_metric():
+    print("select cmetric:\n",
+          "1 - Euclidean\n",
+          "2 - Minkowski\n",
+          "3 - Chebyshev\n")
+    in_metr = input()
+    
+    p = -1
+    if in_metr.startswith('1'):
+        alg_id = 1
+    elif in_metr.startswith('2'):
+        alg_id = 2
+        p = float(input("p = "))
+    elif in_metr.startswith('3'):
+        alg_id = 3
+    else:
+        print("continue with '1'")
+        alg_id = 1
+    return alg_id, p
         
         
