@@ -19,16 +19,16 @@ def LinearModel_collection (X, Y):
     X_train, X_test, y_train, y_test = train_test_split( \
                       X, Y, test_size=0.25, random_state = 42)
     
-    model = LinearRegression().fit(X_train, y_train);
-    print("LinearRegression:")
-    print("Correctness on training set: {:.2f}".format(model.score(X_train, y_train)))
-    print("Correctness on testing  set: {:.2f}\n".format(model.score(X_test, y_test)))
+    #model = LinearRegression().fit(X_train, y_train)
+    #print("LinearRegression:")
+    #print("Correctness on training set: {:.2f}".format(model.score(X_train, y_train)))
+    #print("Correctness on testing  set: {:.2f}\n".format(model.score(X_test, y_test)))
     
     res = 0
     res_train = 0
     opt_alfa = 0.001
     for alfa in {0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100}:
-        model = Ridge(alpha = alfa).fit(X_train, y_train);
+        model = Ridge(alpha = alfa).fit(X_train, y_train)
         current_res = model.score(X_test, y_test) 
         if current_res > res:
             opt_alfa = alfa
@@ -44,7 +44,7 @@ def ridge(X_train, X_test, y_train, y_test):
     res = 0
     first = True
     for alfa in {0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100}:
-        model = Ridge(alpha = alfa).fit(X_train, y_train);
+        model = Ridge(alpha = alfa).fit(X_train, y_train)
         if (len(y_test) == 1):
            current_res = 1 - (y_test[0] - model.predict(X_test)[0])**2 / (4*y_test[0])
         else:        

@@ -2,16 +2,16 @@ import inputdata
 import klustmatr
 import ODR
 
-import numpy as np
+#import numpy as np
 from sklearn.decomposition import PCA
 
-from sklearn.cluster import KMeans
+#from sklearn.cluster import KMeans
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
-def build_model(PrincipalComp, Y, X_train, X_test, y_train, y_test):
+def build_model(PrincipalComp, Y, X_train, X_test, y_train, y_test,dim):
     alg_id, p1, p2 = inputdata.read_clustAlg()
 
     #without ODR
@@ -70,7 +70,7 @@ def build_model(PrincipalComp, Y, X_train, X_test, y_train, y_test):
         print("Correctness on testing  set: {:.2f}\n".format(result))
 
 
-def user_models():
+def user_models(X,Y,dim):
     #divide data into training data and test data
     X_train, X_test, y_train, y_test = train_test_split( \
                       X, Y, test_size=0.25, random_state = 42)
@@ -79,60 +79,22 @@ def user_models():
     if enter.startswith('n'):
         ODR.LinearModel_collection(X, Y)
         enter = input("another algorithm (y/n): ")
+        
+    if not(enter.startswith('y')) and not(enter.startswith('n')):
+        print("continue with 'n'\n\n")
+        ODR.LinearModel_collection(X, Y)
+        enter = input("another algorithm (y/n): ")
     
     while enter.startswith('y'):
-        build_model(X, Y, X_train, X_test, y_train, y_test)
+        build_model(X, Y, X_train, X_test, y_train, y_test,dim)
         
         enter = input("another algorithm (y/n): ")
         if not(enter.startswith('y')) and not(enter.startswith('n')):
             print("continue with 'n'\n")
             print("PCA: ", dim, "components\ncluster analysis algorithm: None\nResult:\n")
-            ODR.LinearModel_collection(X, Y)
+            ODR.LinearModel_collection(X, Y) 
     
-    enter = input("another algorithm (y/n): ")
-    if not(enter.startswith('y')) and not(enter.startswith('n')):
-        print("continue with 'n'\n\n")
-        print("PCA: None\ncluster analysis algorithm: None\nResuult:\n")
-        ODR.LinearModel_collection(X, Y)
         
-
-##############################################################################################
-
-# get input data (information about model and data)
-dir_name = inputdata.read_dir()
-file_name = inputdata.read_file()
-dim = inputdata.read_PCA()
-
-#get data
-x_len, y_len = inputdata.get_propeties(dir_name + "propeties.txt", file_name)
-X = inputdata.get_matr(dir_name + file_name, x_len, y_len)
-if ("DB_AMN" in dir_name):
-    Y = inputdata.get_propities_DB_AMN(dir_name + "propeties.txt", y_len)
-elif ("DB_CANCERF4" in dir_name):
-    Y = inputdata.get_propeties_DB_CANCERF4_A1(dir_name + "propeties.txt", y_len)
-elif ("DB_GLASS" in dir_name):
-    Y = inputdata.get_propeties_DB_GLASS(dir_name + "propeties.txt", y_len)
-    
-#build model with ODR
-if dim>0:
-    #scale data and build a PCA projection
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)  
-    pca = PCA(n_components = dim)
-    PrincipalComp = pca.fit_transform(X_scaled)
-    
-    #plot all data
-    enter = input("plot result (y/n): ");
-    if enter.startswith('y'):
-        klustmatr.plot_PC(dim, PrincipalComp)
-    
-    user_models()
-            
-#build model without ODR            
-else:
-    user_models()
-                
-input("enter smth to finish : ")
 
 
 

@@ -9,9 +9,9 @@ from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import DBSCAN
 
-from sklearn.linear_model import LinearRegression
+#from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
-import mgua
+#import mgua
 
 from sklearn.model_selection import train_test_split
 
